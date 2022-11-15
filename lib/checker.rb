@@ -7,6 +7,7 @@ module Stock
       @list_of_urls = list_of_urls
       @parallel     = parallel
       @result       = []
+      @mutex        = Mutex.new
     end
 
     def call
@@ -23,7 +24,11 @@ module Stock
 
     def check_urls_concurrently
       @list_of_urls.each do |country, urls|
-        urls.each { |url| Thread.new { @result << create_url(country, url) } }
+        urls.each do |url|
+          @mutex.synchronize do
+            Thread.new { @result << create_url(country, url) }
+          end
+        end
       end
     end
 
